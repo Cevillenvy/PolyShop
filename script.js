@@ -99,7 +99,13 @@ document.addEventListener("DOMContentLoaded", function() {
             })
             .catch(error => {
                 console.error('There was a problem with the fetch operation:', error);
-                alert("Failed to load image. Please check the URL and try again.");
+                if (error == "Error: Network response was not ok") {
+                    alert("Failed to load image. Response from third party website was not ok. Try again or try load image from another website")
+                } else if (error == "TypeError: Failed to fetch") {
+                    alert("Failed to load image. Your image has been probably blocked by CORS policy. Please try load image from another website.")
+                } else {
+                    alert("Failed to load image. Please check the URL and try again.");
+                }
             });
     }
 });
