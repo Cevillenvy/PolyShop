@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
+    const canvasContainer = document.querySelector(".canvas-container")
     const canvas = document.getElementById("imageCanvas");
     const colorInfo = document.getElementById("color-info");
     const positionInfo = document.getElementById("position-info");
@@ -6,24 +7,35 @@ document.addEventListener("DOMContentLoaded", function() {
     const fileUploadBtn = document.getElementById("file-upload");
     const urlUploadBtn = document.getElementById("url-upload");
     const colorSample = document.getElementById("color-sample");
+    const scrollContainer = document.querySelector(".scroll-container");
 
     let ctx;
     let image;
 
-    // Функция для получения информации о цвете и координатах при клике на холсте
     function getPixelInfo(event) {
-        const x = event.offsetX;
-        const y = event.offsetY;
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.round(event.clientX - rect.left);
+        const y = Math.round(event.clientY - rect.top);
+
+        if (x < 0) {
+            x = 0
+        }
+        if (y < 0) {
+            y = 0
+        }
+
         const pixelData = ctx.getImageData(x, y, 1, 1).data;
         const color = `RGB: ${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]}`;
         const colorString = `Color: ${color}`;
+        
         colorInfo.textContent = colorString;
         positionInfo.textContent = `Position: ${x}, ${y}`;
         colorSample.style.backgroundColor = `rgb(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]})`;
     }
 
-    // Функция загрузки изображения
     function loadImage(src) {
+        console.log(canvasContainer)
+
         image = new Image();
         image.onload = function() {
             canvas.width = image.width;
@@ -31,19 +43,26 @@ document.addEventListener("DOMContentLoaded", function() {
             ctx = canvas.getContext("2d");
             ctx.drawImage(image, 0, 0);
             imageSizeInfo.textContent = `Image Size: ${image.width} x ${image.height}`;
+            
+            if (image.width < window.innerWidth && image.height < window.innerHeight) {
+                canvasContainer.classList.add('centered');
+            } else {
+                canvasContainer.classList.remove('centered');
+            }
 
-            // Навешиваем обработчики событий на холст после загрузки изображения
+            scrollContainer.scrollLeft = 0;
+            scrollContainer.scrollTop = 0;
+
             canvas.addEventListener("click", getPixelInfo);
             canvas.addEventListener("mousemove", getPixelInfo);
         };
         image.onerror = function() {
             console.error("Failed to load image:", src);
-            alert("Failed to load image. Please check the URL and try again.");
+            alert("Failed to load image. Please try again.");
         };
         image.src = src;
     }
 
-    // Обработчик события клика на кнопке "Upload File"
     fileUploadBtn.addEventListener("click", function() {
         const input = document.createElement("input");
         input.type = "file";
@@ -59,7 +78,6 @@ document.addEventListener("DOMContentLoaded", function() {
         input.click();
     });
 
-    // Обработчик события клика на кнопке "Upload from URL"
     urlUploadBtn.addEventListener("click", function() {
         const url = prompt("Enter Image URL:");
         if (url) {
@@ -67,7 +85,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Функция загрузки изображения по URL
     function loadImageFromURL(url) {
         fetch(url)
             .then(response => {

@@ -1,56 +1,53 @@
-body, html {
+body {
+    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    height: 100%;
-    overflow: hidden;
-}
-
-.canvas-container {
-    width: calc(100% - 80px);
-    height: calc(100% - 80px);
+    height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f0f0f0;
-}
-
-#imageCanvas {
-    border: 1px solid #000;
-    max-width: 100%;
-    max-height: 100%;
+    flex-direction: column;
 }
 
 .toolbar {
-    width: 80px;
-    height: 100%;
-    background-color: #ddd;
-    float: left;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+}
+
+.canvas-container {
+    flex: 1;
+    display: grid;
+    flex-direction: column;
+    overflow: hidden;
+    justify-content: center;
+}
+
+.canvas-container.centered {
+    align-items: center;
+}
+
+.scroll-container {
+    flex: 1;
+    overflow: auto;
+}
+
+canvas {
+    display: block;
 }
 
 .info-panel {
-    width: 100%;
-    height: 80px;
-    background-color: #eee;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    padding: 0 10px 0 10px;
-    overflow-x: auto;
-    white-space: nowrap;
-    justify-content: space-between;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
 }
 
-.info-panel div {
-    margin-right: 20px;
+#color-info, #position-info, #image-size-info {
+    margin: 5px 0;
 }
 
 #color-sample {
     width: 20px;
     height: 20px;
     display: inline-block;
-    margin-left: 10px;
-    border: 1px solid black;
     vertical-align: middle;
 }
