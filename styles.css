@@ -52,10 +52,6 @@ body {
     overflow: auto;
 }
 
-.scroll-container::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
-}
-
 canvas {
     display: block;
 }
