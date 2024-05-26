@@ -8,22 +8,24 @@
     <script src="script.js" defer></script>
 </head>
 <body>
-    <div class="toolbar">
-        <button id="file-upload">Upload File</button>
-        <button id="url-upload">Upload from URL</button>
-    </div>
-    <div class="canvas-container">
-        <div class="scroll-container">
-            <canvas id="imageCanvas"></canvas>
+    <div class="toolbar-and-canvas">
+        <div class="toolbar">
+            <button class="toolbar-item toolbar-button" id="file-upload">Upload File</button>
+            <button class="toolbar-item toolbar-button" id="url-upload">Upload from URL</button>
+        </div>
+        <div class="canvas-container">
+            <div class="scroll-container">
+                <canvas id="imageCanvas"></canvas>
+            </div>
         </div>
     </div>
     <div class="info-panel">
-        <div>
+        <div class="info-panel-item info-panel-color">
             <div id="color-info">Color: </div>
             <div id="color-sample"></div>
         </div>
-        <div id="position-info">Position: </div>
-        <div id="image-size-info">Image Size: </div>
+        <div class="info-panel-item" id="position-info">Position: </div>
+        <div class="info-panel-item" id="image-size-info">Image Size: </div>
     </div>
 </body>
 </html>
