@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const interpolationSelect = document.getElementById("interpolation");
     const pixelInfo = document.getElementById("pixel-info");
     const newPixelInfo = document.getElementById("new-pixel-info");
+    const interpolationTooltip = document.getElementById("interpolation-tooltip")
+    const interpolationTooltipText = document.querySelector(".tooltiptext")
 
     let ctx;
     let image;
@@ -153,7 +155,11 @@ document.addEventListener("DOMContentLoaded", function() {
         if (e.code == "Escape") {
             resizeModal.style.display = "none";
         }
-      });
+    });
+
+    interpolationTooltip.addEventListener("click", function() {
+        interpolationTooltipText.classList.toggle("display-none")
+    })
 
     maintainAspectRatioCheckbox.addEventListener("change", function() {
         if (resizeTypeSelect.value === "percentage") {
@@ -164,11 +170,22 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    resizeTypeSelect.addEventListener("change", function() {
+        if (resizeTypeSelect.value === "percentage") {
+            resizeWidthInput.placeholder = "%"
+            resizeHeightInput.placeholder = "%"
+        } else {
+            resizeWidthInput.placeholder = "px"
+            resizeHeightInput.placeholder = "px"
+        }
+    });
+
     resizeWidthInput.addEventListener("input", function() {
         if (resizeTypeSelect.value === "percentage") {
-            const factor = parseFloat(this.value) / 100;
-            const newWidth = Math.round(image.width * factor);
-            const newHeight = Math.round(image.height * factor);
+            const widthFactor = parseFloat(this.value) / 100;
+            const heightFactor = parseFloat(resizeHeightInput.value) / 100;
+            const newWidth = Math.round(image.width * widthFactor);
+            const newHeight = Math.round(image.height * heightFactor);
             newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
             if (maintainAspectRatioCheckbox.checked) {
                 resizeHeightInput.value = this.value;
@@ -189,9 +206,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
     resizeHeightInput.addEventListener("input", function() {
         if (resizeTypeSelect.value === "percentage") {
-            const factor = parseFloat(this.value) / 100;
-            const newHeight = Math.round(image.height * factor);
-            const newWidth = Math.round(image.width * factor);
+            const heightFactor = parseFloat(this.value) / 100;
+            const widthFactor = parseFloat(resizeWidthInput.value) / 100;
+            const newHeight = Math.round(image.height * heightFactor);
+            const newWidth = Math.round(image.width * widthFactor);
             newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
             if (maintainAspectRatioCheckbox.checked) {
                 resizeWidthInput.value = this.value;
@@ -210,29 +228,26 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    resizeTypeSelect.addEventListener("change", function() {
-        if (this.value === "percentage") {
-            resizeWidthInput.placeholder = "%";
-            resizeHeightInput.placeholder = "%";
-        } else {
-            resizeWidthInput.placeholder = "px";
-            resizeHeightInput.placeholder = "px";
-        }
-        resizeWidthInput.value = "";
-        resizeHeightInput.value = "";
-        newPixelInfo.textContent = "";
-    });
-
     resizeConfirmBtn.addEventListener("click", function() {
         let newWidth, newHeight;
         if (resizeTypeSelect.value === "percentage") {
-            const factor = parseFloat(resizeWidthInput.value) / 100;
-            newWidth = Math.round(image.width * factor);
-            newHeight = Math.round(image.height * factor);
+            const widthPercentage = resizeWidthInput.value;
+            const heightPercentage = resizeHeightInput.value;
+
+            if (!widthPercentage || !heightPercentage) {
+                alert("Please fill in both width and height percentages.");
+                return;
+            }
+
+            const widthFactor = parseFloat(widthPercentage) / 100;
+            const heightFactor = parseFloat(heightPercentage) / 100;
+            newWidth = Math.round(image.width * widthFactor);
+            newHeight = Math.round(image.height * heightFactor);
         } else {
             newWidth = parseInt(resizeWidthInput.value);
             newHeight = parseInt(resizeHeightInput.value);
         }
+
         if (newWidth <= 0 || newHeight <= 0) {
             alert("Width or height cannot be less or equals 0. Please input correct values.");
             return;
@@ -259,19 +274,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         offscreenCtx.drawImage(image, 0, 0, width, height);
         return offscreenCanvas.toDataURL();
-    }
-
-    function updateNewPixelInfo() {
-        let newWidth, newHeight;
-        if (resizeTypeSelect.value === "percentage") {
-            const factor = parseFloat(resizeWidthInput.value) / 100;
-            newWidth = Math.round(image.width * factor);
-            newHeight = Math.round(image.height * factor);
-        } else {
-            newWidth = parseInt(resizeWidthInput.value);
-            newHeight = parseInt(resizeHeightInput.value);
-        }
-        newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
     }
 
     saveBtn.addEventListener("click", function() {

@@ -154,3 +154,7 @@ close:focus {
 .scale-text {
     margin: 0;
 }
+
+.display-none {
+    display: none;
+}
