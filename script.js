@@ -1,16 +1,30 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const canvasContainer = document.querySelector(".canvas-container")
+    const canvasContainer = document.querySelector(".canvas-container");
     const canvas = document.getElementById("imageCanvas");
     const colorInfo = document.getElementById("color-info");
     const positionInfo = document.getElementById("position-info");
     const imageSizeInfo = document.getElementById("image-size-info");
     const fileUploadBtn = document.getElementById("file-upload");
     const urlUploadBtn = document.getElementById("url-upload");
+    const resizeBtn = document.getElementById("resize-button");
+    const saveBtn = document.getElementById("save-button");
     const colorSample = document.getElementById("color-sample");
     const scrollContainer = document.querySelector(".scroll-container");
+    const scaleSelect = document.getElementById("scale-select");
+
+    const resizeModal = document.getElementById("resize-modal");
+    const closeModalBtn = document.querySelector(".close");
+    const resizeConfirmBtn = document.getElementById("resize-confirm");
+    const resizeWidthInput = document.getElementById("resize-width");
+    const resizeHeightInput = document.getElementById("resize-height");
+    const maintainAspectRatioCheckbox = document.getElementById("maintain-aspect-ratio");
+    const interpolationSelect = document.getElementById("interpolation");
+    const pixelInfo = document.getElementById("pixel-info");
 
     let ctx;
     let image;
+    let aspectRatio;
+    let scale = 1;
 
     function getPixelInfo(event) {
         const rect = canvas.getBoundingClientRect();
@@ -18,10 +32,10 @@ document.addEventListener("DOMContentLoaded", function() {
         const y = Math.round(event.clientY - rect.top);
 
         if (x < 0) {
-            x = 0
+            x = 0;
         }
         if (y < 0) {
-            y = 0
+            y = 0;
         }
 
         const pixelData = ctx.getImageData(x, y, 1, 1).data;
@@ -34,21 +48,14 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function loadImage(src) {
-        console.log(canvasContainer)
-
         image = new Image();
         image.onload = function() {
             canvas.width = image.width;
             canvas.height = image.height;
             ctx = canvas.getContext("2d");
-            ctx.drawImage(image, 0, 0);
+            drawImage();
+            aspectRatio = image.width / image.height;
             imageSizeInfo.textContent = `Image Size: ${image.width} x ${image.height}`;
-            
-            if (image.width < window.innerWidth && image.height < window.innerHeight) {
-                canvasContainer.classList.add('centered');
-            } else {
-                canvasContainer.classList.remove('centered');
-            }
 
             scrollContainer.scrollLeft = 0;
             scrollContainer.scrollTop = 0;
@@ -61,6 +68,18 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Failed to load image. Please try again.");
         };
         image.src = src;
+    }
+
+    function drawImage() {
+        canvas.width = image.width * scale;
+        canvas.height = image.height * scale;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    }
+
+    function scaleImage(factor) {
+        scale = factor;
+        drawImage();
     }
 
     fileUploadBtn.addEventListener("click", function() {
@@ -100,12 +119,97 @@ document.addEventListener("DOMContentLoaded", function() {
             .catch(error => {
                 console.error('There was a problem with the fetch operation:', error);
                 if (error == "Error: Network response was not ok") {
-                    alert("Failed to load image. Response from third party website was not ok. Try again or try load image from another website")
+                    alert("Failed to load image. Response from third party website was not ok. Try again or try load image from another website");
                 } else if (error == "TypeError: Failed to fetch") {
-                    alert("Failed to load image. Your image has been probably blocked by CORS policy. Please try load image from another website.")
+                    alert("Failed to load image. Your image has been probably blocked by CORS policy. Please try load image from another website.");
                 } else {
                     alert("Failed to load image. Please check the URL and try again.");
                 }
             });
     }
+
+    scaleSelect.addEventListener("change", function() {
+        const factor = parseFloat(this.value);
+        scaleImage(factor);
+    });
+
+    resizeBtn.addEventListener("click", function() {
+        pixelInfo.textContent = `Original: ${(image.width * image.height / 1e6).toFixed(2)} MP`;
+        resizeModal.style.display = "block";
+    });
+
+    closeModalBtn.addEventListener("click", function() {
+        resizeModal.style.display = "none";
+    });
+
+    window.addEventListener("click", function(event) {
+        if (event.target == resizeModal) {
+            resizeModal.style.display = "none";
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.code == "Escape") {
+            resizeModal.style.display = "none";
+        }
+      });
+
+    maintainAspectRatioCheckbox.addEventListener("change", function() {
+        if (this.checked) {
+            resizeHeightInput.disabled = true;
+            resizeHeightInput.value = Math.round(resizeWidthInput.value / aspectRatio);
+        } else {
+            resizeHeightInput.disabled = false;
+        }
+    });
+
+    resizeWidthInput.addEventListener("input", function() {
+        if (maintainAspectRatioCheckbox.checked) {
+            resizeHeightInput.value = Math.round(this.value / aspectRatio);
+        }
+    });
+
+    resizeHeightInput.addEventListener("input", function() {
+        if (maintainAspectRatioCheckbox.checked) {
+            resizeWidthInput.value = Math.round(this.value * aspectRatio);
+        }
+    });
+
+    resizeConfirmBtn.addEventListener("click", function() {
+        const newWidth = parseInt(resizeWidthInput.value);
+        const newHeight = parseInt(resizeHeightInput.value);
+        if (newWidth <= 0 || newHeight <= 0) {
+            alert("Width or height cannot be less or equals 0. Please input correct values.");
+            return;
+        }
+        const resizedImageData = resizeImage(image, newWidth, newHeight, interpolationSelect.value);
+        const resizedImage = new Image();
+        resizedImage.onload = function() {
+            image = resizedImage;
+            drawImage();
+            aspectRatio = image.width / image.height;
+            imageSizeInfo.textContent = `Image Size: ${image.width} x ${image.height}`;
+        };
+        resizedImage.src = resizedImageData;
+        resizeModal.style.display = "none";
+    });
+
+    function resizeImage(image, width, height, interpolation) {
+        const offscreenCanvas = document.createElement("canvas");
+        offscreenCanvas.width = width;
+        offscreenCanvas.height = height;
+        const offscreenCtx = offscreenCanvas.getContext("2d");
+        if (interpolation === "nearest-neighbor") {
+            offscreenCtx.imageSmoothingEnabled = false;
+        }
+        offscreenCtx.drawImage(image, 0, 0, width, height);
+        return offscreenCanvas.toDataURL();
+    }
+
+    saveBtn.addEventListener("click", function() {
+        const link = document.createElement("a");
+        link.download = "scaled-image.png";
+        link.href = canvas.toDataURL();
+        link.click();
+    });
 });
