@@ -8,6 +8,7 @@
     <script src="script.js" defer></script>
 </head>
 <body>
+    <!-- Main Window -->
     <div class="toolbar-and-canvas">
         <div class="toolbar">
             <button class="toolbar-item toolbar-button" id="file-upload">Upload File</button>
@@ -41,12 +42,13 @@
         <div class="info-panel-item" id="image-size-info">Image Size: </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal Window -->
     <div id="resize-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Resize Image</h2>
-            <p id="pixel-info"></p>
+            <p id="pixel-info">Original: 0 MP</p>
+            <p id="new-pixel-info">New: 0 MP</p>
             <label for="resize-type">Resize Type:</label>
             <select id="resize-type">
                 <option value="percentage">Percentage</option>
@@ -54,10 +56,10 @@
             </select>
             <br>
             <label for="resize-width">Width:</label>
-            <input type="number" id="resize-width">
+            <input type="number" id="resize-width" placeholder="%">
             <br>
             <label for="resize-height">Height:</label>
-            <input type="number" id="resize-height">
+            <input type="number" id="resize-height" placeholder="%">
             <br>
             <input type="checkbox" id="maintain-aspect-ratio" checked>
             <label for="maintain-aspect-ratio">Maintain Aspect Ratio</label>

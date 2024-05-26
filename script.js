@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const canvasContainer = document.querySelector(".canvas-container");
     const canvas = document.getElementById("imageCanvas");
     const colorInfo = document.getElementById("color-info");
     const positionInfo = document.getElementById("position-info");
@@ -15,11 +14,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const resizeModal = document.getElementById("resize-modal");
     const closeModalBtn = document.querySelector(".close");
     const resizeConfirmBtn = document.getElementById("resize-confirm");
+    const resizeTypeSelect = document.getElementById("resize-type");
     const resizeWidthInput = document.getElementById("resize-width");
     const resizeHeightInput = document.getElementById("resize-height");
     const maintainAspectRatioCheckbox = document.getElementById("maintain-aspect-ratio");
     const interpolationSelect = document.getElementById("interpolation");
     const pixelInfo = document.getElementById("pixel-info");
+    const newPixelInfo = document.getElementById("new-pixel-info");
 
     let ctx;
     let image;
@@ -28,8 +29,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function getPixelInfo(event) {
         const rect = canvas.getBoundingClientRect();
-        const x = Math.round(event.clientX - rect.left);
-        const y = Math.round(event.clientY - rect.top);
+        let x = Math.round(event.clientX - rect.left);
+        let y = Math.round(event.clientY - rect.top);
 
         if (x < 0) {
             x = 0;
@@ -155,29 +156,83 @@ document.addEventListener("DOMContentLoaded", function() {
       });
 
     maintainAspectRatioCheckbox.addEventListener("change", function() {
-        if (this.checked) {
-            resizeHeightInput.disabled = true;
-            resizeHeightInput.value = Math.round(resizeWidthInput.value / aspectRatio);
-        } else {
-            resizeHeightInput.disabled = false;
+        if (resizeTypeSelect.value === "percentage") {
+            if (this.checked) {
+                const value = resizeWidthInput.value;
+                resizeHeightInput.value = value;
+            }
         }
     });
 
     resizeWidthInput.addEventListener("input", function() {
-        if (maintainAspectRatioCheckbox.checked) {
-            resizeHeightInput.value = Math.round(this.value / aspectRatio);
+        if (resizeTypeSelect.value === "percentage") {
+            const factor = parseFloat(this.value) / 100;
+            const newWidth = Math.round(image.width * factor);
+            const newHeight = Math.round(image.height * factor);
+            newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
+            if (maintainAspectRatioCheckbox.checked) {
+                resizeHeightInput.value = this.value;
+            }
+        } else {
+            if (maintainAspectRatioCheckbox.checked) {
+                resizeHeightInput.value = Math.round(this.value / aspectRatio);
+            }
+            const newWidth = parseInt(this.value);
+            const newHeight = parseInt(resizeHeightInput.value);
+            newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
+        }
+
+        if (newPixelInfo.textContent == "New: NaN MP") {
+            newPixelInfo.textContent = "New: Waiting for input..."
         }
     });
 
     resizeHeightInput.addEventListener("input", function() {
-        if (maintainAspectRatioCheckbox.checked) {
-            resizeWidthInput.value = Math.round(this.value * aspectRatio);
+        if (resizeTypeSelect.value === "percentage") {
+            const factor = parseFloat(this.value) / 100;
+            const newHeight = Math.round(image.height * factor);
+            const newWidth = Math.round(image.width * factor);
+            newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
+            if (maintainAspectRatioCheckbox.checked) {
+                resizeWidthInput.value = this.value;
+            }
+        } else {
+            if (maintainAspectRatioCheckbox.checked) {
+                resizeWidthInput.value = Math.round(this.value * aspectRatio);
+            }
+            const newWidth = parseInt(resizeWidthInput.value);
+            const newHeight = parseInt(this.value);
+            newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
+        }
+
+        if (newPixelInfo.textContent == "New: NaN MP") {
+            newPixelInfo.textContent = "New: Waiting for input..."
         }
     });
 
+    resizeTypeSelect.addEventListener("change", function() {
+        if (this.value === "percentage") {
+            resizeWidthInput.placeholder = "%";
+            resizeHeightInput.placeholder = "%";
+        } else {
+            resizeWidthInput.placeholder = "px";
+            resizeHeightInput.placeholder = "px";
+        }
+        resizeWidthInput.value = "";
+        resizeHeightInput.value = "";
+        newPixelInfo.textContent = "";
+    });
+
     resizeConfirmBtn.addEventListener("click", function() {
-        const newWidth = parseInt(resizeWidthInput.value);
-        const newHeight = parseInt(resizeHeightInput.value);
+        let newWidth, newHeight;
+        if (resizeTypeSelect.value === "percentage") {
+            const factor = parseFloat(resizeWidthInput.value) / 100;
+            newWidth = Math.round(image.width * factor);
+            newHeight = Math.round(image.height * factor);
+        } else {
+            newWidth = parseInt(resizeWidthInput.value);
+            newHeight = parseInt(resizeHeightInput.value);
+        }
         if (newWidth <= 0 || newHeight <= 0) {
             alert("Width or height cannot be less or equals 0. Please input correct values.");
             return;
@@ -189,9 +244,9 @@ document.addEventListener("DOMContentLoaded", function() {
             drawImage();
             aspectRatio = image.width / image.height;
             imageSizeInfo.textContent = `Image Size: ${image.width} x ${image.height}`;
+            resizeModal.style.display = "none";
         };
         resizedImage.src = resizedImageData;
-        resizeModal.style.display = "none";
     });
 
     function resizeImage(image, width, height, interpolation) {
@@ -204,6 +259,19 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         offscreenCtx.drawImage(image, 0, 0, width, height);
         return offscreenCanvas.toDataURL();
+    }
+
+    function updateNewPixelInfo() {
+        let newWidth, newHeight;
+        if (resizeTypeSelect.value === "percentage") {
+            const factor = parseFloat(resizeWidthInput.value) / 100;
+            newWidth = Math.round(image.width * factor);
+            newHeight = Math.round(image.height * factor);
+        } else {
+            newWidth = parseInt(resizeWidthInput.value);
+            newHeight = parseInt(resizeHeightInput.value);
+        }
+        newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
     }
 
     saveBtn.addEventListener("click", function() {
