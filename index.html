@@ -11,10 +11,12 @@
     <!-- Main Window -->
     <div class="toolbar-and-canvas">
         <div class="toolbar">
-            <button class="toolbar-item toolbar-button" id="file-upload">Upload File</button>
-            <button class="toolbar-item toolbar-button" id="url-upload">Upload from URL</button>
-            <button class="toolbar-item toolbar-button" id="resize-button">Resize Image</button>
-            <button class="toolbar-item toolbar-button" id="save-button">Save Image</button>
+            <button class="toolbar-item toolbar-button" id="file-upload" title="Upload an image from your device">Upload File</button>
+            <button class="toolbar-item toolbar-button" id="url-upload" title="Upload an image from a URL">Upload from URL</button>
+            <button class="toolbar-item toolbar-button" id="resize-button" title="Resize the image">Resize Image</button>
+            <button class="toolbar-item toolbar-button" id="save-button" title="Save the edited image">Save Image</button>
+            <button class="toolbar-item toolbar-button" id="hand-tool" title="Move image with mouse or arrow keys (H)"><span style="color: red">H</span>and Tool</button>
+            <button class="toolbar-item toolbar-button" id="eyedropper-tool" title="Select colors from the image (E)"><span style="color: red">E</span>yedropper Tool</button>
             <div class="toolbar-item">
                 <p class="scale-text">Scale</p>
                 <select id="scale-select">
@@ -40,6 +42,17 @@
         </div>
         <div class="info-panel-item" id="position-info">Position: </div>
         <div class="info-panel-item" id="image-size-info">Image Size: </div>
+    </div>
+
+    <!-- Eyedropper Info Panel -->
+    <div id="eyedropper-panel" class="display-none">
+        <div class="eyedropper-color-info">
+            <div class="swatch" id="swatch1"></div>
+            <div id="eyedropper-color1">Color 1: </div>
+            <div class="swatch" id="swatch2"></div>
+            <div id="eyedropper-color2">Color 2: </div>
+        </div>
+        <button id="eyedropper-close">Close</button>
     </div>
 
     <!-- Modal Window -->
@@ -82,7 +95,7 @@
                     <option value="nearest-neighbor">Nearest Neighbor</option>
                 </select>
                 <span id="interpolation-tooltip" class="tooltip">?</span>
-                <p class="tooltiptext display-none">A <b>nearest neighbor</b> algorithm plots all vectors in a multi-dimensional space and uses each of the points to find a neighboring point that is neares</p>
+                <p class="tooltiptext display-none">A <b>nearest neighbor</b> algorithm...</p>
             </div>
             <div class="resize-confirm-wrapper">
                 <button id="resize-confirm">Confirm</button>

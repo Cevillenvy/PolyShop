@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const colorSample = document.getElementById("color-sample");
     const scrollContainer = document.querySelector(".scroll-container");
     const scaleSelect = document.getElementById("scale-select");
+    const handToolBtn = document.getElementById("hand-tool");
+    const eyedropperToolBtn = document.getElementById("eyedropper-tool");
 
     const resizeModal = document.getElementById("resize-modal");
     const closeModalBtn = document.querySelector(".close");
@@ -23,11 +25,16 @@ document.addEventListener("DOMContentLoaded", function() {
     const newPixelInfo = document.getElementById("new-pixel-info");
     const interpolationTooltip = document.getElementById("interpolation-tooltip")
     const interpolationTooltipText = document.querySelector(".tooltiptext")
+    const eyedropperPanel = document.getElementById("eyedropper-panel");
+    const eyedropperCloseBtn = document.getElementById("eyedropper-close");
+    const swatch1 = document.getElementById("swatch1");
+    const swatch2 = document.getElementById("swatch2");
 
     let ctx;
     let image;
     let aspectRatio;
     let scale = 1;
+    let activeTool = 'none';
 
     function getPixelInfo(event) {
         const rect = canvas.getBoundingClientRect();
@@ -281,5 +288,88 @@ document.addEventListener("DOMContentLoaded", function() {
         link.download = "scaled-image.png";
         link.href = canvas.toDataURL();
         link.click();
+    });
+
+    function activateTool(tool) {
+        activeTool = tool;
+        document.querySelectorAll('.toolbar-button').forEach(button => button.classList.remove('active'));
+        if (tool === 'hand') {
+            handToolBtn.classList.add('active');
+        } else if (tool === 'eyedropper') {
+            eyedropperToolBtn.classList.add('active');
+            eyedropperPanel.classList.remove("display-none")
+        }
+    }
+
+    handToolBtn.addEventListener("click", () => activateTool('hand'));
+    eyedropperToolBtn.addEventListener("click", () => activateTool('eyedropper'));
+
+    fileUploadBtn.addEventListener("click", function() {
+    });
+
+    urlUploadBtn.addEventListener("click", function() {
+    });
+
+    canvas.addEventListener("mousedown", function(e) {
+        if (activeTool === 'eyedropper') {
+            const x = e.offsetX;
+            const y = e.offsetY;
+            const imageData = ctx.getImageData(x, y, 1, 1).data;
+            const color = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
+            if (e.button === 0 && (e.shiftKey || e.ctrlKey || e.altKey)) {
+                swatch2.style.backgroundColor = color;
+            } else {
+                swatch1.style.backgroundColor = color;
+            }
+            
+            // colorInfo.textContent = `Color: ${color}`;
+        }
+    });
+
+    let isDragging = false;
+    let lastX, lastY;
+
+    scrollContainer.addEventListener('mousedown', (e) => {
+        if (activeTool === 'hand') {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        }
+    });
+
+    scrollContainer.addEventListener('mousemove', (e) => {
+        if (isDragging && activeTool === 'hand') {
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            scrollContainer.scrollLeft -= dx;
+            scrollContainer.scrollTop -= dy;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        }
+    });
+
+    scrollContainer.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    scrollContainer.addEventListener('mouseleave', () => {
+        isDragging = false;
+    });
+
+    scaleSelect.addEventListener("change", function() {
+        scale = parseFloat(scaleSelect.value);
+        canvas.style.transform = `scale(${scale})`;
+    });
+
+    eyedropperCloseBtn.addEventListener("click", function() {
+        eyedropperPanel.classList.add("display-none");
+    });
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === 'h') {
+            activateTool('hand');
+        } else if (e.key === 'e') {
+            activateTool('eyedropper');
+        }
     });
 });
