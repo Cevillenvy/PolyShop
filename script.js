@@ -30,8 +30,12 @@ document.addEventListener("DOMContentLoaded", function() {
     const eyedropperCloseBtn = document.getElementById("eyedropper-close");
     const eyedropperSwatch1 = document.getElementById("eyedropper-swatch-1");
     const eyedropperSwatch2 = document.getElementById("eyedropper-swatch-2");
-    const eyedropperColor1 = document.getElementById("eyedropper-color-1");
-    const eyedropperColor2 = document.getElementById("eyedropper-color-2");
+    const eyedropperColor1RGB = document.getElementById("eyedropper-color-1-rgb");
+    const eyedropperColor2RGB = document.getElementById("eyedropper-color-2-rgb");
+    const eyedropperColor1XYZ = document.getElementById("eyedropper-color-1-xyz");
+    const eyedropperColor2XYZ = document.getElementById("eyedropper-color-2-xyz");
+    const eyedropperColor1LAB = document.getElementById("eyedropper-color-1-lab");
+    const eyedropperColor2LAB = document.getElementById("eyedropper-color-2-lab");
     const eyedropperPositionInfo1 = document.getElementById("eyedropper-position-info-1");
     const eyedropperPositionInfo2 = document.getElementById("eyedropper-position-info-2");
 
@@ -88,17 +92,20 @@ document.addEventListener("DOMContentLoaded", function() {
     function drawImage() {
         canvas.width = image.width * scale;
         canvas.height = image.height * scale;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     }
 
     function scaleImage(factor) {
         scale = factor;
+        
         drawImage();
     }
 
     fileUploadBtn.addEventListener("click", function() {
         const input = document.createElement("input");
+
         input.type = "file";
         input.accept = "image/*";
         input.onchange = function(event) {
@@ -290,6 +297,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     saveBtn.addEventListener("click", function() {
         const link = document.createElement("a");
+
         link.download = "scaled-image.png";
         link.href = canvas.toDataURL();
         link.click();
@@ -297,6 +305,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function activateTool(tool) {
         activeTool = tool;
+
         document.querySelectorAll('.toolbar-button').forEach(button => button.classList.remove('active'));
         if (tool === 'hand') {
             handToolBtn.classList.add('active');
@@ -320,16 +329,34 @@ document.addEventListener("DOMContentLoaded", function() {
             const x = e.offsetX;
             const y = e.offsetY;
             const imageData = ctx.getImageData(x, y, 1, 1).data;
-            const color = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
-            const colorString = `Color: ${color}`;
+
+            const rgbColor = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
+            const xyzColorData = RGBtoXYZ(imageData)
+            const labColorData = XYZtoLAB(xyzColorData)
+
+            const xyzColor = `xyz(${xyzColorData[0].toFixed(2)}, ${xyzColorData[1].toFixed(2)}, ${xyzColorData[2].toFixed(2)})`
+            const labColor = `lab(${labColorData[0].toFixed(2)}, ${labColorData[1].toFixed(2)}, ${labColorData[2].toFixed(2)})`
+
+            const rgbColorString = `Color RGB: ${rgbColor}`;
+            const xyzColorString = `Color XYZ: ${xyzColor}`
+            const labColorString = `Color LAB: ${labColor}`
+
             if (e.button === 0 && (e.shiftKey || e.ctrlKey || e.altKey)) {
-                eyedropperSwatch2.style.backgroundColor = color;
-                eyedropperColor2.textContent = colorString
-                eyedropperPositionInfo2.textContent = `Position 2: ${x}, ${y}`
+                eyedropperSwatch2.style.backgroundColor = rgbColor;
+
+                eyedropperColor2RGB.textContent = rgbColorString
+                eyedropperColor2XYZ.textContent = xyzColorString
+                eyedropperColor2LAB.textContent = labColorString
+
+                eyedropperPositionInfo2.textContent = `Position: ${x}, ${y}`
             } else {
-                eyedropperSwatch1.style.backgroundColor = color;
-                eyedropperColor1.textContent = colorString
-                eyedropperPositionInfo1.textContent = `Position 1: ${x}, ${y}`
+                eyedropperSwatch1.style.backgroundColor = rgbColor;
+
+                eyedropperColor1RGB.textContent = rgbColorString
+                eyedropperColor1XYZ.textContent = xyzColorString
+                eyedropperColor1LAB.textContent = labColorString
+
+                eyedropperPositionInfo1.textContent = `Position: ${x}, ${y}`
             }
         }
     });
@@ -349,8 +376,10 @@ document.addEventListener("DOMContentLoaded", function() {
         if (isDragging && activeTool === 'hand') {
             const dx = e.clientX - lastX;
             const dy = e.clientY - lastY;
+
             scrollContainer.scrollLeft -= dx;
             scrollContainer.scrollTop -= dy;
+
             lastX = e.clientX;
             lastY = e.clientY;
         }
@@ -380,4 +409,37 @@ document.addEventListener("DOMContentLoaded", function() {
             activateTool('eyedropper');
         }
     });
+
+    // Референс для функций - https://www.easyrgb.com/en/math.php
+
+    function RGBtoXYZ([R, G, B]) {
+        const [var_R, var_G, var_B] = [R, G, B]
+            .map(x => x / 255)
+            .map(x => x > 0.04045
+                ? Math.pow(((x + 0.055) / 1.055), 2.4)
+                : x / 12.92)
+            .map(x => x * 100)
+    
+        X = var_R * 0.4124 + var_G * 0.3576 + var_B * 0.1805
+        Y = var_R * 0.2126 + var_G * 0.7152 + var_B * 0.0722
+        Z = var_R * 0.0193 + var_G * 0.1192 + var_B * 0.9505
+        return [X, Y, Z]
+    }
+
+    function XYZtoLAB([x, y, z]) {
+        const ref_X =  95.047;
+        const ref_Y = 100.000;
+        const ref_Z = 108.883;
+
+        const [ var_X, var_Y, var_Z ] = [ x / ref_X, y / ref_Y, z / ref_Z ]
+            .map(a => a > 0.008856
+                ? Math.pow(a, 1 / 3)
+                : (7.787 * a) + (16 / 116))
+    
+        CIE_L = (116 * var_Y) - 16
+        CIE_a = 500 * (var_X - var_Y)
+        CIE_b = 200 * (var_Y - var_Z)
+    
+        return [CIE_L, CIE_a, CIE_b]
+    }
 });
