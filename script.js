@@ -25,10 +25,15 @@ document.addEventListener("DOMContentLoaded", function() {
     const newPixelInfo = document.getElementById("new-pixel-info");
     const interpolationTooltip = document.getElementById("interpolation-tooltip")
     const interpolationTooltipText = document.querySelector(".tooltiptext")
+    
     const eyedropperPanel = document.getElementById("eyedropper-panel");
     const eyedropperCloseBtn = document.getElementById("eyedropper-close");
-    const swatch1 = document.getElementById("swatch1");
-    const swatch2 = document.getElementById("swatch2");
+    const eyedropperSwatch1 = document.getElementById("eyedropper-swatch-1");
+    const eyedropperSwatch2 = document.getElementById("eyedropper-swatch-2");
+    const eyedropperColor1 = document.getElementById("eyedropper-color-1");
+    const eyedropperColor2 = document.getElementById("eyedropper-color-2");
+    const eyedropperPositionInfo1 = document.getElementById("eyedropper-position-info-1");
+    const eyedropperPositionInfo2 = document.getElementById("eyedropper-position-info-2");
 
     let ctx;
     let image;
@@ -316,13 +321,16 @@ document.addEventListener("DOMContentLoaded", function() {
             const y = e.offsetY;
             const imageData = ctx.getImageData(x, y, 1, 1).data;
             const color = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
+            const colorString = `Color: ${color}`;
             if (e.button === 0 && (e.shiftKey || e.ctrlKey || e.altKey)) {
-                swatch2.style.backgroundColor = color;
+                eyedropperSwatch2.style.backgroundColor = color;
+                eyedropperColor2.textContent = colorString
+                eyedropperPositionInfo2.textContent = `Position 2: ${x}, ${y}`
             } else {
-                swatch1.style.backgroundColor = color;
+                eyedropperSwatch1.style.backgroundColor = color;
+                eyedropperColor1.textContent = colorString
+                eyedropperPositionInfo1.textContent = `Position 1: ${x}, ${y}`
             }
-            
-            // colorInfo.textContent = `Color: ${color}`;
         }
     });
 
