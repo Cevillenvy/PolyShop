@@ -409,11 +409,6 @@ document.addEventListener("DOMContentLoaded", function() {
         isDragging = false;
     });
 
-    scaleSelect.addEventListener("change", function() {
-        scale = parseFloat(scaleSelect.value);
-        canvas.style.transform = `scale(${scale})`;
-    });
-
     eyedropperCloseBtn.addEventListener("click", function() {
         eyedropperPanel.classList.add("display-none");
     });
