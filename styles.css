@@ -216,29 +216,6 @@ button.active {
     background-color: lightblue;
 }
 
-button[title] {
-    position: relative;
-}
-
-button[title]::after {
-    content: attr(title);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #555;
-    color: #fff;
-    padding: 5px;
-    border-radius: 5px;
-    opacity: 0;
-    white-space: nowrap;
-    transition: opacity 0.3s;
-}
-
-button[title]:hover::after {
-    opacity: 1;
-}
-
 #eyedropper-panel {
     position: fixed;
     width: 35vh;
