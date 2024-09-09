@@ -267,6 +267,18 @@ button[title]:hover::after {
     margin-top: 0px;
 }
 
+#eyedropper-contrast-info {
+    margin-top: 15px;
+}
+
+.red {
+    color: red;
+}
+
+.green {
+    color: green;
+}
+
 .display-none {
     display: none;
 }

@@ -10,8 +10,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const colorSample = document.getElementById("color-sample");
     const scrollContainer = document.querySelector(".scroll-container");
     const scaleSelect = document.getElementById("scale-select");
-    const handToolBtn = document.getElementById("hand-tool");
-    const eyedropperToolBtn = document.getElementById("eyedropper-tool");
 
     const resizeModal = document.getElementById("resize-modal");
     const closeModalBtn = document.querySelector(".close");
@@ -25,8 +23,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const newPixelInfo = document.getElementById("new-pixel-info");
     const interpolationTooltip = document.getElementById("interpolation-tooltip")
     const interpolationTooltipText = document.querySelector(".tooltiptext")
-    
+
+    const handToolBtn = document.getElementById("hand-tool");
+
     const eyedropperPanel = document.getElementById("eyedropper-panel");
+    const eyedropperToolBtn = document.getElementById("eyedropper-tool");
     const eyedropperCloseBtn = document.getElementById("eyedropper-close");
     const eyedropperSwatch1 = document.getElementById("eyedropper-swatch-1");
     const eyedropperSwatch2 = document.getElementById("eyedropper-swatch-2");
@@ -38,6 +39,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const eyedropperColor2LAB = document.getElementById("eyedropper-color-2-lab");
     const eyedropperPositionInfo1 = document.getElementById("eyedropper-position-info-1");
     const eyedropperPositionInfo2 = document.getElementById("eyedropper-position-info-2");
+    const eyedropperContrastInfo = document.getElementById("eyedropper-contrast-info");
 
     let ctx;
     let image;
@@ -324,6 +326,8 @@ document.addEventListener("DOMContentLoaded", function() {
     urlUploadBtn.addEventListener("click", function() {
     });
 
+    let currentR1, currentR2, currentG1, currentG2, currentB1, currentB2
+
     canvas.addEventListener("mousedown", function(e) {
         if (activeTool === 'eyedropper') {
             const x = e.offsetX;
@@ -349,6 +353,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 eyedropperColor2LAB.textContent = labColorString
 
                 eyedropperPositionInfo2.textContent = `Position: ${x}, ${y}`
+
+                currentR2 = imageData[0]
+                currentG2 = imageData[1]
+                currentB2 = imageData[2]
+
+                checkContrastRatio(currentR1, currentR2, currentG1, currentG2, currentB1, currentB2)
             } else {
                 eyedropperSwatch1.style.backgroundColor = rgbColor;
 
@@ -357,6 +367,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 eyedropperColor1LAB.textContent = labColorString
 
                 eyedropperPositionInfo1.textContent = `Position: ${x}, ${y}`
+
+                currentR1 = imageData[0]
+                currentG1 = imageData[1]
+                currentB1 = imageData[2]
+
+                checkContrastRatio(currentR1, currentR2, currentG1, currentG2, currentB1, currentB2)
             }
         }
     });
@@ -441,5 +457,84 @@ document.addEventListener("DOMContentLoaded", function() {
         CIE_b = 200 * (var_Y - var_Z)
     
         return [CIE_L, CIE_a, CIE_b]
+    }
+
+
+    // Функция написана по методике описанной в https://www.w3.org/TR/WCAG20-TECHS/G18.html
+    function checkContrastRatio(r1_8bit, r2_8bit, g1_8bit, g2_8bit, b1_8bit, b2_8bit) {
+        const sr1 = r1_8bit / 255
+        const sr2 = r2_8bit / 255
+        const sg1 = g1_8bit / 255
+        const sg2 = g2_8bit / 255
+        const sb1 = b1_8bit / 255
+        const sb2 = b2_8bit / 255
+
+        if (isNaN(sr1) || isNaN(sr2) || isNaN(sg1) || isNaN(sg2) || isNaN(sb1) || isNaN(sb2)) {
+            return
+        }
+
+        let r1, r2, g1, g2, b1, b2
+
+        if (sr1 <= 0.03928) {
+            r1 = sr1 / 12.92
+        } else {
+            r1 = ((sr1 + 0.055) / 1.055 ) ** 2.4
+        }
+
+        if (sr2 <= 0.03928) {
+            r2 = sr2 / 12.92
+        } else {
+            r2 = ((sr2 + 0.055) / 1.055 ) ** 2.4
+        }
+
+        if (sg1 <= 0.03928) {
+            g1 = sg1 / 12.92
+        } else {
+            g1 = ((sg1 + 0.055) / 1.055 ) ** 2.4
+        }
+
+        if (sg2 <= 0.03928) {
+            g2 = sg2 / 12.92
+        } else {
+            g2 = ((sg2 + 0.055) / 1.055 ) ** 2.4
+        }
+
+        if (sb1 <= 0.03928) {
+            b1 = sb1 / 12.92
+        } else {
+            b1 = ((sb1 + 0.055) / 1.055 ) ** 2.4
+        }
+
+        if (sb2 <= 0.03928) {
+            b2 = sb2 / 12.92
+        } else {
+            b2 = ((sb2 + 0.055) / 1.055 ) ** 2.4
+        }
+
+        const l1 = 0.2126 * r1 + 0.7152 * g1 + 0.0722 * b1
+        const l2 = 0.2126 * r2 + 0.7152 * g2 + 0.0722 * b2
+
+        if ((l1 + 0.05) / (l2 + 0.05) >= 4.5) {
+            eyedropperContrastInfo.textContent = `Contrast Ratio: ${((l1+0.05) / (l2 + 0.05)).toFixed(2)}`
+
+            eyedropperContrastInfo.classList.add("green")
+        } else if ((l2 + 0.05) / (l1 + 0.05) >= 4.5) {
+            eyedropperContrastInfo.textContent = `Contrast Ratio: ${((l2+0.05) / (l1 + 0.05)).toFixed(2)}`
+
+            eyedropperContrastInfo.classList.add("green")
+        } else {
+            // Контраст меньше 4.5
+            if (((l1 + 0.05) / (l2 + 0.05)) >= ((l2 + 0.05) / (l1 + 0.05))) {
+                eyedropperContrastInfo.textContent = `Contrast Ratio: ${((l1+0.05) / (l2 + 0.05)).toFixed(2)}`
+
+                eyedropperContrastInfo.classList.remove("green")
+                eyedropperContrastInfo.classList.add("red")
+            } else {
+                eyedropperContrastInfo.textContent = `Contrast Ratio: ${((l2+0.05) / (l1 + 0.05)).toFixed(2)}`
+
+                eyedropperContrastInfo.classList.remove("green")
+                eyedropperContrastInfo.classList.add("red")
+            }
+        }
     }
 });
