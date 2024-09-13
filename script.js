@@ -203,14 +203,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     resizeWidthInput.addEventListener("input", function() {
         if (resizeTypeSelect.value === "percentage") {
+            if (maintainAspectRatioCheckbox.checked) {
+                resizeHeightInput.value = this.value;
+            }
             const widthFactor = parseFloat(this.value) / 100;
             const heightFactor = parseFloat(resizeHeightInput.value) / 100;
             const newWidth = Math.round(image.width * widthFactor);
             const newHeight = Math.round(image.height * heightFactor);
             newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
-            if (maintainAspectRatioCheckbox.checked) {
-                resizeHeightInput.value = this.value;
-            }
         } else {
             if (maintainAspectRatioCheckbox.checked) {
                 resizeHeightInput.value = Math.round(this.value / aspectRatio);
@@ -227,14 +227,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     resizeHeightInput.addEventListener("input", function() {
         if (resizeTypeSelect.value === "percentage") {
+            if (maintainAspectRatioCheckbox.checked) {
+                resizeWidthInput.value = this.value;
+            }
             const heightFactor = parseFloat(this.value) / 100;
             const widthFactor = parseFloat(resizeWidthInput.value) / 100;
             const newHeight = Math.round(image.height * heightFactor);
             const newWidth = Math.round(image.width * widthFactor);
             newPixelInfo.textContent = `New: ${(newWidth * newHeight / 1e6).toFixed(2)} MP`;
-            if (maintainAspectRatioCheckbox.checked) {
-                resizeWidthInput.value = this.value;
-            }
         } else {
             if (maintainAspectRatioCheckbox.checked) {
                 resizeWidthInput.value = Math.round(this.value * aspectRatio);
@@ -283,6 +283,9 @@ document.addEventListener("DOMContentLoaded", function() {
             resizeModal.style.display = "none";
         };
         resizedImage.src = resizedImageData;
+
+        resizeHeightInput.value = null
+        resizeWidthInput.value = null
     });
 
     function resizeImage(image, width, height, interpolation) {
