@@ -341,9 +341,9 @@ document.addEventListener("DOMContentLoaded", function() {
             const xyzColor = `xyz(${xyzColorData[0].toFixed(2)}, ${xyzColorData[1].toFixed(2)}, ${xyzColorData[2].toFixed(2)})`
             const labColor = `lab(${labColorData[0].toFixed(2)}, ${labColorData[1].toFixed(2)}, ${labColorData[2].toFixed(2)})`
 
-            const rgbColorString = `Color RGB: ${rgbColor}`;
-            const xyzColorString = `Color XYZ: ${xyzColor}`
-            const labColorString = `Color LAB: ${labColor}`
+            const rgbColorString = `${rgbColor}`;
+            const xyzColorString = `${xyzColor}`
+            const labColorString = `${labColor}`
 
             if (e.button === 0 && (e.shiftKey || e.ctrlKey || e.altKey)) {
                 eyedropperSwatch2.style.backgroundColor = rgbColor;
