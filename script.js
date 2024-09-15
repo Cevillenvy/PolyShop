@@ -42,7 +42,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const eyedropperContrastInfo = document.getElementById("eyedropper-contrast-info");
 
     const curvesModal = document.getElementById("curves-modal");
-    const curvesModalCloseBtn = document.getElementById("curves-modal-close");
+    const curvesModalCloseIcon = document.getElementById("curves-modal-close-icon");
+    const curvesModalCloseBtn = document.getElementById("curves-modal-close-button")
     const applyCurvesBtn = document.getElementById("apply-curves");
     const resetCurvesBtn = document.getElementById("reset-curves");
     const previewCheckbox = document.getElementById("preview-checkbox");
@@ -440,7 +441,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
     document.getElementById("curves-button").addEventListener("click", function() {
-        curvesModal.style.display = "block";
+        curvesModal.style.display = "grid";
+    });
+
+    curvesModalCloseIcon.addEventListener("click", function() {
+        curvesModal.style.display = "none";
     });
 
     curvesModalCloseBtn.addEventListener("click", function() {

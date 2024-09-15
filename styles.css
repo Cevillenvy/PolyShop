@@ -276,8 +276,8 @@ button.active {
     gap: 10px;
 }
 
-.curves-input input {
-    width: 60px;
+#curves-modal {
+    justify-content: flex-end;
 }
 
 #curves-modal .modal-content {
