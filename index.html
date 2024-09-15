@@ -17,6 +17,7 @@
             <button class="toolbar-item toolbar-button" id="save-button" title="Save the edited image">Save Image</button>
             <button class="toolbar-item toolbar-button" id="hand-tool" title="Move image with mouse or arrow keys (H)"><span style="color: red">H</span>and Tool</button>
             <button class="toolbar-item toolbar-button" id="eyedropper-tool" title="Select colors from the image (E)"><span style="color: red">E</span>yedropper Tool</button>
+            <button class="toolbar-item toolbar-button" id="curves-button" title="Curves">Curves</button>
             <div class="toolbar-item">
                 <p class="scale-text">Scale</p>
                 <select id="scale-select">
@@ -112,6 +113,33 @@
             </div>
             <div class="resize-confirm-wrapper">
                 <button id="resize-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Curves Correction -->
+    <div id="curves-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="curves-modal-close">&times;</span>
+            <h2>Curves Correction</h2>
+            <div class="curves-wrapper">
+                <p>Input/Output Points:</p>
+                <div class="curves-input">
+                    <label for="point1-input">Point 1:</label>
+                    <input type="number" id="point1-input-in" value="0" min="0" max="255"> →
+                    <input type="number" id="point1-input-out" value="0" min="0" max="255">
+                </div>
+                <div class="curves-input">
+                    <label for="point2-input">Point 2:</label>
+                    <input type="number" id="point2-input-in" value="255" min="0" max="255"> →
+                    <input type="number" id="point2-input-out" value="255" min="0" max="255">
+                </div>
+                <div>
+                    <input type="checkbox" id="preview-checkbox"> Preview Changes
+                </div>
+                <button id="apply-curves">Apply Correction</button>
+                <button id="reset-curves">Reset</button>
+                <button id="close-curves">Close</button>
             </div>
         </div>
     </div>

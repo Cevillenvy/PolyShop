@@ -41,6 +41,16 @@ document.addEventListener("DOMContentLoaded", function() {
     const eyedropperPositionInfo2 = document.getElementById("eyedropper-position-info-2");
     const eyedropperContrastInfo = document.getElementById("eyedropper-contrast-info");
 
+    const curvesModal = document.getElementById("curves-modal");
+    const curvesModalCloseBtn = document.getElementById("curves-modal-close");
+    const applyCurvesBtn = document.getElementById("apply-curves");
+    const resetCurvesBtn = document.getElementById("reset-curves");
+    const previewCheckbox = document.getElementById("preview-checkbox");
+    const point1InputIn = document.getElementById("point1-input-in");
+    const point1InputOut = document.getElementById("point1-input-out");
+    const point2InputIn = document.getElementById("point2-input-in");
+    const point2InputOut = document.getElementById("point2-input-out");
+
     let ctx;
     let image;
     let aspectRatio;
@@ -170,11 +180,15 @@ document.addEventListener("DOMContentLoaded", function() {
         if (event.target == resizeModal) {
             resizeModal.style.display = "none";
         }
+        if (event.target == curvesModal) {
+            curvesModal.style.display = "none";            
+        }
     });
 
     document.addEventListener("keydown", (e) => {
         if (e.code == "Escape") {
             resizeModal.style.display = "none";
+            curvesModal.style.display = "none";
         }
     });
 
@@ -423,6 +437,59 @@ document.addEventListener("DOMContentLoaded", function() {
             activateTool('eyedropper');
         }
     });
+
+
+    document.getElementById("curves-button").addEventListener("click", function() {
+        curvesModal.style.display = "block";
+    });
+
+    curvesModalCloseBtn.addEventListener("click", function() {
+        curvesModal.style.display = "none";
+    });
+
+    applyCurvesBtn.addEventListener("click", function() {
+        applyCurvesCorrection();
+    });
+
+    resetCurvesBtn.addEventListener("click", function() {
+        point1InputIn.value = 0;
+        point1InputOut.value = 0;
+        point2InputIn.value = 255;
+        point2InputOut.value = 255;
+        if (previewCheckbox.checked) {
+            applyCurvesCorrection();
+        }
+    });
+
+    function applyCurvesCorrection() {
+        const lut = createLUT(parseInt(point1InputIn.value), parseInt(point1InputOut.value),
+                            parseInt(point2InputIn.value), parseInt(point2InputOut.value));
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = lut[data[i]];
+            data[i + 1] = lut[data[i+1]];
+            data[i + 2] = lut[data[i+2]];
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    function createLUT(p1In, p1Out, p2In, p2Out) {
+        const lut = new Array(256);
+        for (let i = 0; i < 256; i++) {
+            if (i <= p1In) {
+                lut[i] = (i * p1Out) / p1In;
+            } else if (i >= p2In) {
+                lut[i] = p2Out + ((255 - i) * (255 - p2Out)) / (255 - p2In);
+            } else {
+                lut[i] = p1Out + ((i - p1In) * (p2Out - p1Out)) / (p2In - p1In);
+            }
+        }
+        return lut;
+    }
 
     // Референс для функций - https://www.easyrgb.com/en/math.php
 
