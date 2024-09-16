@@ -51,6 +51,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const point1InputOut = document.getElementById("point1-input-out");
     const point2InputIn = document.getElementById("point2-input-in");
     const point2InputOut = document.getElementById("point2-input-out");
+    const svg = document.getElementById("curves-graph");
+    const point1 = document.getElementById("point1-circle");
+    const point2 = document.getElementById("point2-circle");
+    const curveLine = document.getElementById("curve-line");
 
     let ctx;
     let image;
@@ -318,7 +322,7 @@ document.addEventListener("DOMContentLoaded", function() {
     saveBtn.addEventListener("click", function() {
         const link = document.createElement("a");
 
-        link.download = "scaled-image.png";
+        link.download = "new-image-polyshop.png";
         link.href = canvas.toDataURL();
         link.click();
     });
@@ -452,49 +456,154 @@ document.addEventListener("DOMContentLoaded", function() {
         curvesModal.style.display = "none";
     });
 
-    applyCurvesBtn.addEventListener("click", function() {
-        applyCurvesCorrection();
-    });
 
-    resetCurvesBtn.addEventListener("click", function() {
+    let activePoint = null;
+
+    function resetValues() {
         point1InputIn.value = 0;
         point1InputOut.value = 0;
         point2InputIn.value = 255;
         point2InputOut.value = 255;
-        if (previewCheckbox.checked) {
-            applyCurvesCorrection();
+
+        updateSVGCurve();
+    }
+
+    function updateSVGCurve() {
+        const x1 = parseInt(point1InputIn.value);
+        const y1 = 255 - parseInt(point1InputOut.value);
+        const x2 = parseInt(point2InputIn.value);
+        const y2 = 255 - parseInt(point2InputOut.value);
+
+        point1.setAttribute("cx", x1);
+        point1.setAttribute("cy", y1);
+        point2.setAttribute("cx", x2);
+        point2.setAttribute("cy", y2);
+
+        curveLine.setAttribute("x1", x1);
+        curveLine.setAttribute("y1", y1);
+        curveLine.setAttribute("x2", x2);
+        curveLine.setAttribute("y2", y2);
+    }
+
+    function validateInput() {
+        if (parseInt(point1InputIn.value) >= parseInt(point2InputIn.value)) {
+            point2InputIn.value = parseInt(point1InputIn.value) + 1;
         }
-    });
+    }
+
+    let originalImageData = null;
 
     function applyCurvesCorrection() {
-        const lut = createLUT(parseInt(point1InputIn.value), parseInt(point1InputOut.value),
-                            parseInt(point2InputIn.value), parseInt(point2InputOut.value));
+        if (!originalImageData) {
+            originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
 
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
+        const x1 = parseInt(point1InputIn.value);
+        const y1 = parseInt(point1InputOut.value);
+        const x2 = parseInt(point2InputIn.value);
+        const y2 = parseInt(point2InputOut.value);
 
-        for (let i = 0; i < data.length; i += 4) {
-            data[i] = lut[data[i]];
-            data[i + 1] = lut[data[i+1]];
-            data[i + 2] = lut[data[i+2]];
+        // LUT (Look-Up Table)
+        let lut = new Array(256);
+        for (let i = 0; i <= 255; i++) {
+            if (i <= x1) {
+                lut[i] = y1;
+            } else if (i >= x2) {
+                lut[i] = y2;
+            } else {
+                lut[i] = Math.round(((y2 - y1) / (x2 - x1)) * (i - x1) + y1);
+            }
+        }
+
+        let imageData = ctx.createImageData(originalImageData.width, originalImageData.height);
+        let data = imageData.data;
+        let originalData = originalImageData.data;
+
+        for (let i = 0; i < originalData.length; i += 4) {
+            data[i] = lut[originalData[i]];         // Red
+            data[i + 1] = lut[originalData[i + 1]]; // Green
+            data[i + 2] = lut[originalData[i + 2]]; // Blue
+            data[i + 3] = originalData[i + 3];      // Alpha остается неизменным
         }
 
         ctx.putImageData(imageData, 0, 0);
     }
 
-    function createLUT(p1In, p1Out, p2In, p2Out) {
-        const lut = new Array(256);
-        for (let i = 0; i < 256; i++) {
-            if (i <= p1In) {
-                lut[i] = (i * p1Out) / p1In;
-            } else if (i >= p2In) {
-                lut[i] = p2Out + ((255 - i) * (255 - p2Out)) / (255 - p2In);
-            } else {
-                lut[i] = p1Out + ((i - p1In) * (p2Out - p1Out)) / (p2In - p1In);
+    point1.addEventListener("mousedown", function() {
+        activePoint = "point1";
+    });
+    point2.addEventListener("mousedown", function() {
+        activePoint = "point2";
+    });
+
+    document.addEventListener("mousemove", function(event) {
+        if (activePoint) {
+            const svgRect = svg.getBoundingClientRect();
+            let x = event.clientX - svgRect.left;
+            let y = event.clientY - svgRect.top;
+
+            x = Math.max(0, Math.min(255, x));
+            y = Math.max(0, Math.min(255, y));
+
+            if (activePoint === "point1" && x < parseInt(point2InputIn.value)) {
+                point1InputIn.value = Math.round(x);
+                point1InputOut.value = Math.round(255 - y);
+            } else if (activePoint === "point2" && x > parseInt(point1InputIn.value)) {
+                point2InputIn.value = Math.round(x);
+                point2InputOut.value = Math.round(255 - y);
+            }
+
+            updateSVGCurve();
+            if (previewCheckbox.checked) {
+                applyCurvesCorrection();
             }
         }
-        return lut;
-    }
+    });
+
+    document.addEventListener("mouseup", function() {
+        activePoint = null;
+    });
+
+    point1InputIn.addEventListener("input", function() {
+        validateInput();
+        updateSVGCurve();
+        if (previewCheckbox.checked) {
+            applyCurvesCorrection();
+        }
+    });
+
+    point1InputOut.addEventListener("input", function() {
+        updateSVGCurve();
+        if (previewCheckbox.checked) {
+            applyCurvesCorrection();
+        }
+    });
+
+    point2InputIn.addEventListener("input", function() {
+        validateInput();
+        updateSVGCurve();
+        if (previewCheckbox.checked) {
+            applyCurvesCorrection();
+        }
+    });
+
+    point2InputOut.addEventListener("input", function() {
+        updateSVGCurve();
+        if (previewCheckbox.checked) {
+            applyCurvesCorrection();
+        }
+    });
+
+    applyCurvesBtn.addEventListener("click", function() {
+        applyCurvesCorrection();
+    });
+
+    resetCurvesBtn.addEventListener("click", function() {
+        resetValues();
+        if (previewCheckbox.checked) {
+            applyCurvesCorrection();
+        }
+    });
 
     // Референс для функций - https://www.easyrgb.com/en/math.php
 
