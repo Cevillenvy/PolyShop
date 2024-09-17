@@ -529,6 +529,41 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.putImageData(imageData, 0, 0);
     }
 
+    function resetImage() {
+        if (!originalImageData) {
+            originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+
+        let x1 = 0
+        let y1 = 0
+        let x2 = 255
+        let y2 = 255
+
+        let lut = new Array(256);
+        for (let i = 0; i <= 255; i++) {
+            if (i <= x1) {
+                lut[i] = y1;
+            } else if (i >= x2) {
+                lut[i] = y2;
+            } else {
+                lut[i] = Math.round(((y2 - y1) / (x2 - x1)) * (i - x1) + y1);
+            }
+        }
+
+        let imageData = ctx.createImageData(originalImageData.width, originalImageData.height);
+        let data = imageData.data;
+        let originalData = originalImageData.data;
+
+        for (let i = 0; i < originalData.length; i += 4) {
+            data[i] = lut[originalData[i]];
+            data[i + 1] = lut[originalData[i + 1]];
+            data[i + 2] = lut[originalData[i + 2]];
+            data[i + 3] = originalData[i + 3];
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+    }
+
     point1.addEventListener("mousedown", function() {
         activePoint = "point1";
     });
@@ -596,6 +631,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
     applyCurvesBtn.addEventListener("click", function() {
         applyCurvesCorrection();
+        resetValues();
+        previewCheckbox.checked = false
+        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        curvesModal.style.display = "none";
     });
 
     resetCurvesBtn.addEventListener("click", function() {
@@ -604,6 +643,15 @@ document.addEventListener("DOMContentLoaded", function() {
             applyCurvesCorrection();
         }
     });
+
+    previewCheckbox.addEventListener("click", function() {
+        if (previewCheckbox.checked) {
+            updateSVGCurve();
+            applyCurvesCorrection();
+        } else {
+            resetImage()
+        }
+    })
 
     // Референс для функций - https://www.easyrgb.com/en/math.php
 
