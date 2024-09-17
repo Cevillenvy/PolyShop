@@ -173,8 +173,15 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     resizeBtn.addEventListener("click", function() {
-        pixelInfo.textContent = `Original: ${(image.width * image.height / 1e6).toFixed(2)} MP`;
-        resizeModal.style.display = "block";
+        try {
+            (function () {
+                pixelInfo.textContent = `Original: ${(image.width * image.height / 1e6).toFixed(2)} MP`;
+                resizeModal.style.display = "block";
+            }())
+        } catch (error) {
+            console.error("No image\n",error)
+            return
+        }
     });
 
     closeModalBtn.addEventListener("click", function() {
@@ -320,6 +327,14 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     saveBtn.addEventListener("click", function() {
+        try {
+            (function () {
+                image.width
+            }())
+        } catch (error) {
+            console.error("No image\n",error)
+            return
+        }
         const link = document.createElement("a");
 
         link.download = "new-image-polyshop.png";
@@ -328,6 +343,14 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     function activateTool(tool) {
+        try {
+            (function () {
+                image.width
+            }())
+        } catch (error) {
+            console.error("No image\n",error)
+            return
+        }
         activeTool = tool;
 
         document.querySelectorAll('.toolbar-button').forEach(button => button.classList.remove('active'));
@@ -445,6 +468,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
     document.getElementById("curves-button").addEventListener("click", function() {
+        try {
+            (function () {
+                image.width
+            }())
+        } catch (error) {
+            console.error("No image\n",error)
+            return
+        }
         curvesModal.style.display = "grid";
         updateSVGCurve();
     });
@@ -494,7 +525,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function applyCurvesCorrection() {
         if (!originalImageData) {
-            originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            try {
+                (function () {
+                    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                }())
+            } catch (error) {
+                console.error("No image\n",error)
+                return
+            }
         }
 
         const x1 = parseInt(point1InputIn.value);
@@ -514,9 +552,19 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
 
-        let imageData = ctx.createImageData(originalImageData.width, originalImageData.height);
-        let data = imageData.data;
-        let originalData = originalImageData.data;
+        let imageData
+        let data
+        let originalData
+        try {
+            (function () {
+                imageData = ctx.createImageData(originalImageData.width, originalImageData.height);
+                data = imageData.data;
+                originalData = originalImageData.data;
+            }())
+        } catch (error) {
+            console.error("No image\n",error)
+            return
+        }
 
         for (let i = 0; i < originalData.length; i += 4) {
             data[i] = lut[originalData[i]];         // Red
@@ -549,9 +597,19 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
 
-        let imageData = ctx.createImageData(originalImageData.width, originalImageData.height);
-        let data = imageData.data;
-        let originalData = originalImageData.data;
+        let imageData
+        let data
+        let originalData
+        try {
+            (function () {
+                imageData = ctx.createImageData(originalImageData.width, originalImageData.height);
+                data = imageData.data;
+                originalData = originalImageData.data;
+            }())
+        } catch (error) {
+            console.error("No image\n",error)
+            return
+        }
 
         for (let i = 0; i < originalData.length; i += 4) {
             data[i] = lut[originalData[i]];
@@ -632,8 +690,16 @@ document.addEventListener("DOMContentLoaded", function() {
         applyCurvesCorrection();
         resetValues();
         previewCheckbox.checked = false
-        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         curvesModal.style.display = "none";
+
+        try {
+            (function () {
+                originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            }())
+        } catch (error) {
+            console.error("No image\n",error)
+            return
+        }
     });
 
     resetCurvesBtn.addEventListener("click", function() {
