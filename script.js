@@ -355,12 +355,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (tool === 'hand') {
             handToolBtn.classList.toggle('active');
+            if (eyedropperToolBtn.classList.contains('active')) {
+                eyedropperToolBtn.classList.remove('active')
+            }
         } else if (tool === `eyedropper`) {
             if (eyedropperToolBtn.classList.contains('active')) {
                 eyedropperToolBtn.classList.remove('active');
             } else {
                 eyedropperToolBtn.classList.add('active')
                 eyedropperPanel.classList.remove("display-none")
+            }
+            if (handToolBtn.classList.contains('active')) {
+                handToolBtn.classList.remove('active')
             }
         }
     }
