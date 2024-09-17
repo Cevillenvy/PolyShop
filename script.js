@@ -353,12 +353,15 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         activeTool = tool;
 
-        document.querySelectorAll('.toolbar-button').forEach(button => button.classList.remove('active'));
         if (tool === 'hand') {
-            handToolBtn.classList.add('active');
-        } else if (tool === 'eyedropper') {
-            eyedropperToolBtn.classList.add('active');
-            eyedropperPanel.classList.remove("display-none")
+            handToolBtn.classList.toggle('active');
+        } else if (tool === `eyedropper`) {
+            if (eyedropperToolBtn.classList.contains('active')) {
+                eyedropperToolBtn.classList.remove('active');
+            } else {
+                eyedropperToolBtn.classList.add('active')
+                eyedropperPanel.classList.remove("display-none")
+            }
         }
     }
 
@@ -456,6 +459,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     eyedropperCloseBtn.addEventListener("click", function() {
         eyedropperPanel.classList.add("display-none");
+        if (eyedropperToolBtn.classList.contains('active')) {
+            eyedropperToolBtn.classList.remove('active');
+        }
     });
 
     document.addEventListener("keydown", function(e) {

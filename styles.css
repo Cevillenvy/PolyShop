@@ -12,7 +12,7 @@ p {
 }
 
 .toolbar-and-canvas {
-    height: 95vh;
+    height: 100vh;
     display: flex;
     flex-direction: row;
 }
@@ -35,6 +35,10 @@ p {
 
 button {
     border-radius: 10px;
+}
+
+.toolbar-button {
+    min-height: 5vh;
 }
 
 .toolbar-button:hover {
@@ -281,5 +285,6 @@ button.active {
 }
 
 #curves-modal .modal-content {
-    max-width: 400px;
+    min-width: fit-content;
+    margin-right: 1vw;
 }
