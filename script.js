@@ -746,7 +746,17 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     })
 
-    filterButton.addEventListener('click', () => filterModal.style.display = 'block');
+    filterButton.addEventListener('click', function() {
+        try {
+            (function () {
+                image.width
+            }())
+        } catch (error) {
+            console.error("No image\n",error)
+            return
+        }
+        filterModal.style.display = 'block'
+    });
     filterClose.addEventListener('click', () => filterModal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === filterModal) filterModal.style.display = 'none'; });
 
@@ -796,6 +806,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 input.value = preset[index];
             });
         }
+        if (previewCheck.checked) {
+            applyFilter(true)
+        }
     }
 
     function applyFilter(isPreview = false) {
@@ -826,10 +839,50 @@ document.addEventListener("DOMContentLoaded", function() {
         if (originalPixels) {
             ctx.putImageData(originalPixels, 0, 0);
         }
-        matrixInputs.forEach((input) => {
-            input.value = 0;
-        });
-        matrix11.value = 1
+
+        let i = 0
+        switch (presetSelect.value){
+            case 'identity':
+                matrixInputs.forEach((input) => {
+                    input.value = presets.identity[i];
+                    i++
+                });
+                i = 0
+                if (previewCheck.checked) {
+                    applyFilter(true)
+                }
+                break
+            case 'sharpen':
+                matrixInputs.forEach((input) => {
+                    input.value = presets.sharpen[i];
+                    i++
+                });
+                i = 0
+                if (previewCheck.checked) {
+                    applyFilter(true)
+                }
+                break
+            case 'gaussian':
+                matrixInputs.forEach((input) => {
+                    input.value = presets.gaussian[i];
+                    i++
+                });
+                i = 0
+                if (previewCheck.checked) {
+                    applyFilter(true)
+                }
+                break
+            case 'box':
+                matrixInputs.forEach((input) => {
+                    input.value = presets.box[i];
+                    i++
+                });
+                i = 0
+                if (previewCheck.checked) {
+                    applyFilter(true)
+                }
+                break
+        }
     }
 
     function applyConvolution(imageData, kernel) {

@@ -288,3 +288,22 @@ button.active {
     min-width: fit-content;
     margin-right: 1vw;
 }
+
+#presetSelect {
+    max-width: fit-content;
+}
+
+.filterPreviewLabel {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.matrix-grid-wrapper {
+    margin-top: 15px;
+}
+
+#filter-modal-content {
+    max-width: 30vw;
+    margin-right: 1vw;
+    margin-top: 40vh;
+}

@@ -152,7 +152,7 @@
 
     <!-- Modal for Filters -->
     <div id="filterModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" id="filter-modal-content">
             <span class="close" id="filter-close">&times;</span>
             <h2>Filter Settings</h2>
 
@@ -164,21 +164,23 @@
                 <option value="box">Box Blur</option>
             </select>
 
-            <div class="matrix-grid">
-                <input type="number" id="m00" class="matrix" value="0">
-                <input type="number" id="m01" class="matrix" value="0">
-                <input type="number" id="m02" class="matrix" value="0">
-
-                <input type="number" id="m10" class="matrix" value="0">
-                <input type="number" id="m11" class="matrix" value="1">
-                <input type="number" id="m12" class="matrix" value="0">
-
-                <input type="number" id="m20" class="matrix" value="0">
-                <input type="number" id="m21" class="matrix" value="0">
-                <input type="number" id="m22" class="matrix" value="0">
+            <div class="matrix-grid-wrapper">
+                <div class="matrix-grid">
+                    <input type="number" id="m00" class="matrix" value="0">
+                    <input type="number" id="m01" class="matrix" value="0">
+                    <input type="number" id="m02" class="matrix" value="0">
+    
+                    <input type="number" id="m10" class="matrix" value="0">
+                    <input type="number" id="m11" class="matrix" value="1">
+                    <input type="number" id="m12" class="matrix" value="0">
+    
+                    <input type="number" id="m20" class="matrix" value="0">
+                    <input type="number" id="m21" class="matrix" value="0">
+                    <input type="number" id="m22" class="matrix" value="0">
+                </div>
             </div>
 
-            <label>
+            <label class="filterPreviewLabel">
                 <input type="checkbox" id="previewCheck"> Preview
             </label>
 
