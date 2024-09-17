@@ -56,11 +56,22 @@ document.addEventListener("DOMContentLoaded", function() {
     const point2 = document.getElementById("point2-circle");
     const curveLine = document.getElementById("curve-line");
 
+    const filterButton = document.getElementById('filter-button');
+    const filterModal = document.getElementById('filterModal');
+    const filterClose = document.getElementById('filter-close');
+    const presetSelect = document.getElementById('presetSelect');
+    const matrixInputs = document.querySelectorAll('.matrix');
+    const matrix11 = document.getElementById('m11')
+    const filterApplyBtn = document.getElementById('filter-apply');
+    const filterResetBtn = document.getElementById('filter-reset');
+    const previewCheck = document.getElementById('previewCheck');
+
     let ctx;
     let image;
     let aspectRatio;
     let scale = 1;
     let activeTool = 'none';
+    let originalPixels;
 
     function getPixelInfo(event) {
         const rect = canvas.getBoundingClientRect();
@@ -90,6 +101,7 @@ document.addEventListener("DOMContentLoaded", function() {
             canvas.height = image.height;
             ctx = canvas.getContext("2d");
             drawImage();
+            originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
             aspectRatio = image.width / image.height;
             imageSizeInfo.textContent = `Image Size: ${image.width} x ${image.height}`;
 
@@ -201,6 +213,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (e.code == "Escape") {
             resizeModal.style.display = "none";
             curvesModal.style.display = "none";
+            filterModal.style.display = "none";
         }
     });
 
@@ -540,6 +553,7 @@ document.addEventListener("DOMContentLoaded", function() {
             try {
                 (function () {
                     originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 }())
             } catch (error) {
                 console.error("No image\n",error)
@@ -591,6 +605,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function resetImage() {
         if (!originalImageData) {
             originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
         }
 
         let x1 = 0
@@ -707,6 +722,7 @@ document.addEventListener("DOMContentLoaded", function() {
         try {
             (function () {
                 originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
             }())
         } catch (error) {
             console.error("No image\n",error)
@@ -729,6 +745,130 @@ document.addEventListener("DOMContentLoaded", function() {
             resetImage()
         }
     })
+
+    filterButton.addEventListener('click', () => filterModal.style.display = 'block');
+    filterClose.addEventListener('click', () => filterModal.style.display = 'none');
+    window.addEventListener('click', (e) => { if (e.target === filterModal) filterModal.style.display = 'none'; });
+
+    presetSelect.addEventListener('change', handlePresetChange);
+    filterResetBtn.addEventListener('click', resetFilter);
+    filterApplyBtn.addEventListener('click', function () {
+        if (previewCheck.checked == true) {
+            originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        } else {
+            applyFilter(false);
+        }
+        filterModal.style.display = "none";
+        resetFilter();
+        previewCheck.checked = false;
+    });
+
+    const presets = {
+        identity: [0, 0, 0, 0, 1, 0, 0, 0, 0],
+        sharpen: [0, -1, 0, -1, 5, -1, 0, -1, 0],
+        gaussian: [1/16, 2/16, 1/16, 2/16, 4/16, 2/16, 1/16, 2/16, 1/16],  // Gaussian Blur 3x3
+        box: [1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9]  // Box Blur 3x3
+    };
+
+    previewCheck.addEventListener('change', handlePreview);
+
+    matrixInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if (previewCheck.checked) {
+                applyFilter(true);
+            }
+        });
+    });
+
+    function handlePreview() {
+        if (previewCheck.checked) {
+            applyFilter(true);
+        } else {
+            resetFilter();
+        }
+    }
+
+    function handlePresetChange() {
+        const preset = presets[presetSelect.value];
+        if (preset) {
+            matrixInputs.forEach((input, index) => {
+                input.value = preset[index];
+            });
+        }
+    }
+
+    function applyFilter(isPreview = false) {
+        const canvas = document.getElementById("imageCanvas");
+        const ctx = canvas.getContext('2d');
+    
+        const kernel = Array.from(matrixInputs).map(input => parseFloat(input.value));
+        
+        let sourcePixels = originalPixels;
+
+        if (isPreview) {
+            sourcePixels = originalPixels;
+        } else {
+            sourcePixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+
+        const filteredPixels = applyConvolution(sourcePixels, kernel);
+
+        ctx.putImageData(filteredPixels, 0, 0);
+
+        if (!isPreview) {
+            originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    function resetFilter() {
+        if (originalPixels) {
+            ctx.putImageData(originalPixels, 0, 0);
+        }
+        matrixInputs.forEach((input) => {
+            input.value = 0;
+        });
+        matrix11.value = 1
+    }
+
+    function applyConvolution(imageData, kernel) {
+        const canvas = document.getElementById("imageCanvas");
+        const ctx = canvas.getContext('2d');
+        const { data, width, height } = imageData;
+        const side = Math.sqrt(kernel.length);
+        const half = Math.floor(side / 2);
+        const output = ctx.createImageData(width, height);
+        const outputData = output.data;
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const pixelIndex = (y * width + x) * 4;
+                let r = 0, g = 0, b = 0;
+
+                for (let ky = 0; ky < side; ky++) {
+                    for (let kx = 0; kx < side; kx++) {
+                        const offsetX = Math.min(width - 1, Math.max(0, x + kx - half));
+                        const offsetY = Math.min(height - 1, Math.max(0, y + ky - half));
+
+                        const offsetIndex = (offsetY * width + offsetX) * 4;
+                        const weight = kernel[ky * side + kx];
+
+                        r += data[offsetIndex] * weight;
+                        g += data[offsetIndex + 1] * weight;
+                        b += data[offsetIndex + 2] * weight;
+                    }
+                }
+
+                outputData[pixelIndex] = Math.min(Math.max(r, 0), 255);
+                outputData[pixelIndex + 1] = Math.min(Math.max(g, 0), 255);
+                outputData[pixelIndex + 2] = Math.min(Math.max(b, 0), 255);
+                outputData[pixelIndex + 3] = data[pixelIndex + 3];
+            }
+        }
+
+        return output;
+    }
 
     // Референс для функций - https://www.easyrgb.com/en/math.php
 

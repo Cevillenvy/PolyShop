@@ -18,6 +18,7 @@
             <button class="toolbar-item toolbar-button" id="hand-tool" title="Move image with mouse or arrow keys (H)"><span style="color: red">H</span>and Tool</button>
             <button class="toolbar-item toolbar-button" id="eyedropper-tool" title="Select colors from the image (E)"><span style="color: red">E</span>yedropper Tool</button>
             <button class="toolbar-item toolbar-button" id="curves-button" title="Curves">Curves</button>
+            <button class="toolbar-item toolbar-button" id="filter-button">Filters</button>
             <div class="toolbar-item">
                 <p class="scale-text">Scale</p>
                 <select id="scale-select">
@@ -145,6 +146,45 @@
                 <button id="apply-curves">Apply Correction</button>
                 <button id="reset-curves">Reset</button>
                 <button id="curves-modal-close-button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Filters -->
+    <div id="filterModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="filter-close">&times;</span>
+            <h2>Filter Settings</h2>
+
+            <label for="presetSelect">Preset:</label>
+            <select id="presetSelect">
+                <option value="identity">Identity</option>
+                <option value="sharpen">Sharpen</option>
+                <option value="gaussian">Gaussian Blur</option>
+                <option value="box">Box Blur</option>
+            </select>
+
+            <div class="matrix-grid">
+                <input type="number" id="m00" class="matrix" value="0">
+                <input type="number" id="m01" class="matrix" value="0">
+                <input type="number" id="m02" class="matrix" value="0">
+
+                <input type="number" id="m10" class="matrix" value="0">
+                <input type="number" id="m11" class="matrix" value="1">
+                <input type="number" id="m12" class="matrix" value="0">
+
+                <input type="number" id="m20" class="matrix" value="0">
+                <input type="number" id="m21" class="matrix" value="0">
+                <input type="number" id="m22" class="matrix" value="0">
+            </div>
+
+            <label>
+                <input type="checkbox" id="previewCheck"> Preview
+            </label>
+
+            <div class="modal-buttons">
+                <button id="filter-reset">Reset</button>
+                <button id="filter-apply">Apply</button>
             </div>
         </div>
     </div>
