@@ -446,6 +446,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.getElementById("curves-button").addEventListener("click", function() {
         curvesModal.style.display = "grid";
+        updateSVGCurve();
     });
 
     curvesModalCloseIcon.addEventListener("click", function() {
@@ -479,10 +480,8 @@ document.addEventListener("DOMContentLoaded", function() {
         point2.setAttribute("cx", x2);
         point2.setAttribute("cy", y2);
 
-        curveLine.setAttribute("x1", x1);
-        curveLine.setAttribute("y1", y1);
-        curveLine.setAttribute("x2", x2);
-        curveLine.setAttribute("y2", y2);
+        const curvePoints = `${x1},${y1} ${x2},${y2}`
+        curveLine.setAttribute("points", curvePoints)
     }
 
     function validateInput() {
