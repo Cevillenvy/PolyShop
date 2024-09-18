@@ -307,3 +307,7 @@ button.active {
     margin-right: 1vw;
     margin-top: 40vh;
 }
+
+#point1-circle:active, #point2-circle:active {
+    fill: #72d083;
+}

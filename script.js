@@ -663,15 +663,16 @@ document.addEventListener("DOMContentLoaded", function() {
             originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
         }
-
-        let x1 = 0
-        let y1 = 0
-        let x2 = 255
-        let y2 = 255
-
-        createLUT(x1, y1, x2, y2)
-        generateHistogram(imageData);
+    
+        let x1 = 0;
+        let y1 = 0;
+        let x2 = 255;
+        let y2 = 255;
+    
+        createLUT(x1, y1, x2, y2);
+        generateHistogram(ctx.getImageData(0, 0, canvas.width, canvas.height));
     }
+    
 
     function generateHistogram(imageData) {
         const histogram = {
@@ -818,7 +819,9 @@ document.addEventListener("DOMContentLoaded", function() {
     resetCurvesBtn.addEventListener("click", function() {
         resetValues();
         if (previewCheckbox.checked) {
+            updateSVGCurve();
             applyCurvesCorrection();
+            generateHistogram(ctx.getImageData(0, 0, canvas.width, canvas.height));
         }
     });
 
@@ -826,10 +829,12 @@ document.addEventListener("DOMContentLoaded", function() {
         if (previewCheckbox.checked) {
             updateSVGCurve();
             applyCurvesCorrection();
+            generateHistogram(ctx.getImageData(0, 0, canvas.width, canvas.height));
         } else {
-            resetImage()
+            resetImage();
+            generateHistogram(ctx.getImageData(0, 0, canvas.width, canvas.height));
         }
-    })
+    });
 
     filterButton.addEventListener('click', function() {
         try {
