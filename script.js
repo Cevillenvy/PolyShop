@@ -728,14 +728,16 @@ document.addEventListener("DOMContentLoaded", function() {
         activePoint = "point2";
     });
 
+    let currentX
+
     document.addEventListener("mousemove", function(event) {
         if (activePoint) {
             const svgRect = svg.getBoundingClientRect();
-            let x = event.clientX - svgRect.left;
-            let y = event.clientY - svgRect.top;
+            currentX = event.clientX - svgRect.left;
+            let currentY = event.clientY - svgRect.top;
 
-            x = Math.max(0, Math.min(255, x));
-            y = Math.max(0, Math.min(255, y));
+            x = Math.max(0, Math.min(255, currentX));
+            y = Math.max(0, Math.min(255, currentY));
 
             if (activePoint === "point1") {
                 if (x < parseInt(point2InputIn.value)) {
@@ -827,7 +829,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     previewCheckbox.addEventListener("click", function() {
         if (previewCheckbox.checked) {
-            updateSVGCurve();
+            if (point1InputIn.value - currentX < point2InputIn.value - currentX) {
+                updateSVGCurve();      
+            } else {
+                updateSVGCurveInvert();
+            }
+
             applyCurvesCorrection();
             generateHistogram(ctx.getImageData(0, 0, canvas.width, canvas.height));
         } else {
