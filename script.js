@@ -923,6 +923,9 @@ document.addEventListener("DOMContentLoaded", function() {
     function resetFilter() {
         if (originalPixels) {
             ctx.putImageData(originalPixels, 0, 0);
+            if (previewCheck.checked) {
+                return
+            }
         }
 
         let i = 0
