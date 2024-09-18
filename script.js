@@ -548,24 +548,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let originalImageData = null;
 
-    function applyCurvesCorrection() {
-        if (!originalImageData) {
-            try {
-                (function () {
-                    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                }())
-            } catch (error) {
-                console.error("No image\n",error)
-                return
-            }
-        }
-
-        const x1 = parseInt(point1InputIn.value);
-        const y1 = parseInt(point1InputOut.value);
-        const x2 = parseInt(point2InputIn.value);
-        const y2 = parseInt(point2InputOut.value);
-
+    function createLUT(x1, y1, x2, y2) {
         // LUT (Look-Up Table)
         let lut = new Array(256);
         for (let i = 0; i <= 255; i++) {
@@ -602,6 +585,27 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.putImageData(imageData, 0, 0);
     }
 
+    function applyCurvesCorrection() {
+        if (!originalImageData) {
+            try {
+                (function () {
+                    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    originalPixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                }())
+            } catch (error) {
+                console.error("No image\n",error)
+                return
+            }
+        }
+
+        const x1 = parseInt(point1InputIn.value);
+        const y1 = parseInt(point1InputOut.value);
+        const x2 = parseInt(point2InputIn.value);
+        const y2 = parseInt(point2InputOut.value);
+
+        createLUT(x1, y1, x2, y2)
+    }
+
     function resetImage() {
         if (!originalImageData) {
             originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -613,39 +617,7 @@ document.addEventListener("DOMContentLoaded", function() {
         let x2 = 255
         let y2 = 255
 
-        let lut = new Array(256);
-        for (let i = 0; i <= 255; i++) {
-            if (i <= x1) {
-                lut[i] = y1;
-            } else if (i >= x2) {
-                lut[i] = y2;
-            } else {
-                lut[i] = Math.round(((y2 - y1) / (x2 - x1)) * (i - x1) + y1);
-            }
-        }
-
-        let imageData
-        let data
-        let originalData
-        try {
-            (function () {
-                imageData = ctx.createImageData(originalImageData.width, originalImageData.height);
-                data = imageData.data;
-                originalData = originalImageData.data;
-            }())
-        } catch (error) {
-            console.error("No image\n",error)
-            return
-        }
-
-        for (let i = 0; i < originalData.length; i += 4) {
-            data[i] = lut[originalData[i]];
-            data[i + 1] = lut[originalData[i + 1]];
-            data[i + 2] = lut[originalData[i + 2]];
-            data[i + 3] = originalData[i + 3];
-        }
-
-        ctx.putImageData(imageData, 0, 0);
+        createLUT(x1, y1, x2, y2)
     }
 
     point1.addEventListener("mousedown", function() {
