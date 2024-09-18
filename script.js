@@ -491,7 +491,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-
     document.getElementById("curves-button").addEventListener("click", function() {
         try {
             (function () {
@@ -501,8 +500,10 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error("No image\n",error)
             return
         }
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
         curvesModal.style.display = "grid";
         updateSVGCurve();
+        generateHistogram(imageData);
     });
 
     curvesModalCloseIcon.addEventListener("click", function() {
@@ -538,6 +539,55 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const curvePoints = `${x1},${y1} ${x2},${y2}`
         curveLine.setAttribute("points", curvePoints)
+
+        updateBoundaryLines(x1, y1, x2, y2);
+    }
+    
+    function updateSVGCurveInvert() {
+        const x1 = parseInt(point1InputIn.value);
+        const y1 = 255 - parseInt(point1InputOut.value);
+        const x2 = parseInt(point2InputIn.value);
+        const y2 = 255 - parseInt(point2InputOut.value);
+
+        point1.setAttribute("cx", x1);
+        point1.setAttribute("cy", y1);
+        point2.setAttribute("cx", x2);
+        point2.setAttribute("cy", y2);
+
+        const curvePoints = `${x1},${y1} ${x2},${y2}`
+        curveLine.setAttribute("points", curvePoints)
+
+        updateBoundaryLinesInvert(x1, y1, x2, y2);
+    }
+
+    function updateBoundaryLines(x1, y1, x2, y2) {
+        const line1 = document.getElementById("line1");
+        const line2 = document.getElementById("line2");
+    
+        line1.setAttribute("x1", x1);
+        line1.setAttribute("y1", y1);
+        line1.setAttribute("x2", -50);
+        line1.setAttribute("y2", y1);
+    
+        line2.setAttribute("x1", x2);
+        line2.setAttribute("y1", y2);
+        line2.setAttribute("x2", 256);
+        line2.setAttribute("y2", y2);
+    }
+
+    function updateBoundaryLinesInvert(x1, y1, x2, y2) {
+        const line1 = document.getElementById("line1");
+        const line2 = document.getElementById("line2");
+    
+        line1.setAttribute("x1", x1);
+        line1.setAttribute("y1", y1);
+        line1.setAttribute("x2", 256);
+        line1.setAttribute("y2", y1);
+    
+        line2.setAttribute("x1", x2);
+        line2.setAttribute("y1", y2);
+        line2.setAttribute("x2", -50);
+        line2.setAttribute("y2", y2);
     }
 
     function validateInput() {
@@ -597,6 +647,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 return
             }
         }
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
         const x1 = parseInt(point1InputIn.value);
         const y1 = parseInt(point1InputOut.value);
@@ -604,6 +655,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const y2 = parseInt(point2InputOut.value);
 
         createLUT(x1, y1, x2, y2)
+        generateHistogram(imageData);
     }
 
     function resetImage() {
@@ -618,6 +670,54 @@ document.addEventListener("DOMContentLoaded", function() {
         let y2 = 255
 
         createLUT(x1, y1, x2, y2)
+        generateHistogram(imageData);
+    }
+
+    function generateHistogram(imageData) {
+        const histogram = {
+            red: new Array(256).fill(0),
+            green: new Array(256).fill(0),
+            blue: new Array(256).fill(0),
+        };
+    
+        const data = imageData.data;
+    
+        for (let i = 0; i < data.length; i += 4) {
+            histogram.red[data[i]]++;
+            histogram.green[data[i + 1]]++;
+            histogram.blue[data[i + 2]]++;
+        }
+    
+        drawHistogram(histogram);
+    }
+
+    function drawHistogram(histogram) {
+        const histogramCanvas = document.getElementById("histogramCanvas");
+        const histCtx = histogramCanvas.getContext("2d");
+    
+        histCtx.clearRect(0, 0, histogramCanvas.width, histogramCanvas.height);
+    
+        const maxCount = Math.max(...histogram.red, ...histogram.green, ...histogram.blue);
+    
+        const colors = ['rgba(255, 0, 0, 0.5)', 'rgba(0, 255, 0, 0.5)', 'rgba(0, 0, 255, 0.5)'];
+        const histograms = [histogram.red, histogram.green, histogram.blue];
+    
+        histograms.forEach((hist, index) => {
+            histCtx.fillStyle = colors[index];
+            hist.forEach((count, i) => {
+                const height = (count / maxCount) * histogramCanvas.height;
+                histCtx.fillRect(i, histogramCanvas.height - height, 1, height);
+            });
+        });
+    
+        setHistogramBackground();
+    }
+
+    function setHistogramBackground() {
+        const histogramCanvas = document.getElementById("histogramCanvas");
+        const svgImage = document.querySelector("#curves-graph image");
+    
+        svgImage.setAttribute('href', histogramCanvas.toDataURL());
     }
 
     point1.addEventListener("mousedown", function() {
@@ -636,15 +736,28 @@ document.addEventListener("DOMContentLoaded", function() {
             x = Math.max(0, Math.min(255, x));
             y = Math.max(0, Math.min(255, y));
 
-            if (activePoint === "point1" && x < parseInt(point2InputIn.value)) {
-                point1InputIn.value = Math.round(x);
-                point1InputOut.value = Math.round(255 - y);
-            } else if (activePoint === "point2" && x > parseInt(point1InputIn.value)) {
-                point2InputIn.value = Math.round(x);
-                point2InputOut.value = Math.round(255 - y);
+            if (activePoint === "point1") {
+                if (x < parseInt(point2InputIn.value)) {
+                    point1InputIn.value = Math.round(x);
+                    point1InputOut.value = Math.round(255 - y);
+                    updateSVGCurve()
+                } else {
+                    point1InputIn.value = Math.round(x);
+                    point1InputOut.value = Math.round(255 - y);
+                    updateSVGCurveInvert();
+                }
+            } else if (activePoint === "point2") {
+                if (x > parseInt(point1InputIn.value)) {
+                    point2InputIn.value = Math.round(x);
+                    point2InputOut.value = Math.round(255 - y);
+                    updateSVGCurve()
+                } else {
+                    point2InputIn.value = Math.round(x);
+                    point2InputOut.value = Math.round(255 - y);
+                    updateSVGCurveInvert();
+                }
             }
-
-            updateSVGCurve();
+            
             if (previewCheckbox.checked) {
                 applyCurvesCorrection();
             }
